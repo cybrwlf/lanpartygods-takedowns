@@ -14,8 +14,9 @@ def run(*a):
 
 made = 0
 for r in records:
-    found = run('gh', 'issue', 'list', '--repo', REPO, '--state', 'all', '--search', '"%s" in:body' % r['id'], '--json', 'number', '--limit', '1')
-    if json.loads(found.stdout or '[]'):
+    # one issue per removal EVENT: a photo removed, restored and removed again gets a new record, so match on the removal time too
+    found = run('gh', 'issue', 'list', '--repo', REPO, '--state', 'all', '--search', '"%s" in:body' % r['id'], '--json', 'number,body', '--limit', '50')
+    if any(r['t'] in (x.get('body') or '') for x in json.loads(found.stdout or '[]')):
         continue
     title = 'Removed: %s / %s / %s' % (r['group'], r['event'], r['f'])
     body = '\n'.join([
